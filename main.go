@@ -117,7 +117,7 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		now := time.Now()
 		last := a.fritzIps.refreshTime
 
-		if last.Add(a.refreshTime).After(now) {
+		if now.After(last.Add(a.refreshTime)) {
 			go FetchIps(a)
 			fmt.Println("Async fritzIps")
 		}
@@ -161,6 +161,8 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Redirect?
 	for _, rawIp := range ips {
 		ip := net.ParseIP(rawIp)
+		fmt.Println("Local: ", rawIp)
+		fmt.Println("Fritz: ", a.fritzIps)
 
 		if ip != nil && a.fritzIps.any_match(ip) {
 			// Redirect!
