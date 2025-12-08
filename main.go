@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"net/url"
 )
 
 type FritzIps struct {
@@ -61,7 +62,7 @@ type LRPlugin struct {
 	next         http.Handler
 	refreshTime  time.Duration
 	fritzFetcher avm.FritzBox
-	localHost    string
+	localHost    url.URL
 	fritzIps     *FritzIps
 }
 
@@ -76,12 +77,13 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		Timeout: timeoutDuration,
 		Logger:  rootLogger,
 	}
+	localHost, _ := url.Parse(config.LocalHost)
 
 	return &LRPlugin{
 		next:         next,
 		refreshTime:  refreshTime,
 		fritzFetcher: fritzbox,
-		localHost:    config.LocalHost,
+		localHost:    *localHost,
 		fritzIps:     nil,
 	}, nil
 }
@@ -150,7 +152,11 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if ip != nil && a.fritzIps.any_match(ip) {
 			// Redirect!
 			url := req.URL
-			url.Host = a.localHost
+			url.Host = a.localHost.Host
+
+			if a.localHost.Scheme != "" {
+				url.Scheme = a.localHost.Scheme
+			}
 
 			http.Redirect(rw, req, url.String(), http.StatusTemporaryRedirect)
 			return
