@@ -1,7 +1,0 @@
-# golang.org/x/net v0.48.0
-## explicit; go 1.24.0
-golang.org/x/net/html
-golang.org/x/net/html/atom
-# gopkg.in/xmlpath.v2 v2.0.0-20150820204837-860cbeca3ebc
-## explicit
-gopkg.in/xmlpath.v2
