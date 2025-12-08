@@ -2,13 +2,15 @@ package FritzBox_LocalRedirect
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
-	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
-	"net/url"
+
+	"github.com/MrEAlderson/FritzBox_LocalRedirect/pkg/avm"
 )
 
 type FritzIps struct {
@@ -99,7 +101,7 @@ func FetchIps(a *LRPlugin) {
 		refreshTime: time.Now(),
 	}
 
-	if fritzIps != nil && !fritzIps.all_nil() {
+	if !fritzIps.all_nil() {
 		a.fritzIps = fritzIps
 	}
 }
@@ -108,6 +110,7 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// force refresh now
 	if a.fritzIps == nil {
 		FetchIps(a)
+		fmt.Println("Fetched fritzIps")
 
 		// Enqueue refresh
 	} else {
@@ -116,12 +119,14 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		if last.Add(a.refreshTime).After(now) {
 			go FetchIps(a)
+			fmt.Println("Async fritzIps")
 		}
 	}
 
 	// No fritz info, not worth the effort
 	if a.fritzIps == nil {
 		a.next.ServeHTTP(rw, req)
+		fmt.Println("No fritzIps")
 		return
 	}
 
@@ -159,10 +164,11 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			http.Redirect(rw, req, url.String(), http.StatusTemporaryRedirect)
+			fmt.Println("Redirect")
 			return
 		}
 	}
-
+	fmt.Println("No Redirect")
 	// Nope, remote access :)
 	a.next.ServeHTTP(rw, req)
 }
