@@ -139,10 +139,6 @@ func (a *LRPlugin) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if ip == "" {
-		ip = req.Header.Get("CF-Connecting-IP")
-	}
-
-	if ip == "" {
 		ip = req.RemoteAddr
 		// remove port
 		pieces := strings.Split(ip, ":")
